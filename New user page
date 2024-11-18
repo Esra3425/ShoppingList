@@ -1,0 +1,76 @@
+namespace WebApplication1
+{
+    public partial class WebForm1 : System.Web.UI.Page
+    {
+        string connectionString = @"Data Source=[YourDataSource];Initial Catalog=[YourProjectName];Integrated Security=True";
+        protected void Page_Load(object sender, EventArgs e)
+        {
+            if (!IsPostBack)
+            {
+                
+            }
+        }
+
+        protected void btn_kayit_Click(object sender, EventArgs e)
+        {
+            string name = txt_isim.Text.Trim();
+            string surname = txt_soyisim.Text.Trim();
+            string email = txt_mail.Text.Trim();
+            string password = txt_sifre.Text;
+            string confirmPassword = txt_sifre_tekrar.Text;
+
+            // Şifrelerin aynı olup olmadığını kontrol et
+            if (password != confirmPassword)
+            {
+                lblMessage.Text = "Şifreler eşleşmiyor. Lütfen aynı şifreyi tekrar giriniz.";
+                lblMessage.ForeColor = System.Drawing.Color.Red;
+                lblMessage.Visible = true;
+                return; // İşlemi sonlandır
+            }
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+
+                string query = "INSERT INTO kayit (kullanici_ad, kullanici_soyad, kullanici_mail, kullanici_sifre, kullanici_sifre_kontrol)" +
+                 " VALUES (@KullaniciAd, @KullaniciSoyad, @KullaniciMail, @KullaniciSifre, @KullaniciSifreKontrol)";
+                SqlCommand command = new SqlCommand(query, connection);
+
+                
+                command.Parameters.AddWithValue("@KullaniciAd", name);
+                command.Parameters.AddWithValue("@KullaniciSoyad", surname);
+                command.Parameters.AddWithValue("@KullaniciMail", email);
+                command.Parameters.AddWithValue("@KullaniciSifre", password);
+                command.Parameters.AddWithValue("@KullaniciSifreKontrol", confirmPassword);
+
+                command.ExecuteNonQuery(); // Sorguyu veritabanında çalıştır
+
+                connection.Close(); 
+            }
+
+            
+
+            
+            lblMessage.Text = "Kayıt işlemi başarıyla gerçekleştirildi.";
+            lblMessage.ForeColor = System.Drawing.Color.Green;
+            lblMessage.Visible = true;
+
+            lblSuccessMessage.Text = $"Başarıyla kaydedildi, {name}!"; 
+            lblSuccessMessage.ForeColor = System.Drawing.Color.Blue;
+            lblSuccessMessage.Visible = true;
+
+            
+            Session["UserName"] = name;
+            Session["UserSurname"] = surname;
+            Session["UserEmail"] = email;
+
+            Redirectimer.Enabled = true;
+            
+        }
+
+        protected void Redirectimer_Tick(object sender, EventArgs e)
+        {
+            Response.Redirect("ShoppingList.aspx");
+        }
+    }
+}
