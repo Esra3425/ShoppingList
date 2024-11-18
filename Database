@@ -1,0 +1,21 @@
+create database deneme_asp
+go
+use deneme_asp
+
+create table kayit(
+kullanici_ad varchar (25),
+kullanici_soyad varchar (30),
+kullanici_mail varchar (50),
+kullanici_sifre int,
+kullanici_sifre_kontrol int
+);
+
+
+create table droplist(
+urun_id int identity(1,1) primary key,
+urun_adi varchar (20),
+kategori varchar (25)
+);
+
+select*from kayit
+select*from droplist
