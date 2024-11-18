@@ -1,0 +1,90 @@
+namespace WebApplication1
+{
+    public partial class WebForm2 : System.Web.UI.Page
+    {
+        string connectionString = @"Data Source=[YourDataSource];Initial Catalog=[YourProjectName];Integrated Security=True";
+        protected void Page_Load(object sender, EventArgs e)
+        {
+            if (!IsPostBack)
+            {
+                // Sayfa ilk kez yüklendiğinde veya yenilendiğinde alışveriş listesini session'dan al ve ListBox'a bağla
+                if (Session["ShoppingList"] != null)
+                {
+                    List<string> shoppingList = (List<string>)Session["ShoppingList"];
+                    list_alisveris.DataSource = shoppingList;
+                    list_alisveris.DataBind();
+                }
+            }
+        }
+
+        protected void btn_ekle_Click(object sender, EventArgs e)
+        {
+            
+            string newItem = ekle_txt.Text.Trim();
+            string category = kategori_txt.Text.Trim();
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+                string query = "INSERT INTO droplist (urun_adi, kategori) VALUES (@UrunAdi, @Kategori)";
+                SqlCommand command = new SqlCommand(query, connection);
+
+                command.Parameters.AddWithValue("@UrunAdi", newItem);
+                command.Parameters.AddWithValue("@Kategori", category);
+
+                command.ExecuteNonQuery(); // Sorguyu veritabanında çalıştır
+
+                connection.Close(); // Bağlantıyı kapat
+
+            }
+            // Alışveriş listesine eklenen öğeyi session'a ekle
+            List<string> shoppingList = (List<string>)Session["ShoppingList"];
+            if (shoppingList == null)
+            {
+                shoppingList = new List<string>();
+            }
+            shoppingList.Add(newItem);
+            Session["ShoppingList"] = shoppingList;
+
+            
+            list_alisveris.DataSource = shoppingList;
+            list_alisveris.DataBind();
+
+            
+            ekle_txt.Text = "";
+            kategori_txt.Text = "";
+
+           
+        }
+
+        protected void btn_sil_Click(object sender, EventArgs e)
+        {
+            string selectedItem = list_alisveris.SelectedItem?.Text;
+            if (!string.IsNullOrEmpty(selectedItem))
+            {
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+                    string query = "DELETE FROM droplist WHERE urun_adi = @ItemAd";
+                    SqlCommand command = new SqlCommand(query, connection);
+
+                    command.Parameters.AddWithValue("@ItemAd", selectedItem);
+
+                    command.ExecuteNonQuery(); 
+
+                    connection.Close();
+                }
+                
+                List<string> shoppingList = (List<string>)Session["ShoppingList"];
+                if (shoppingList != null)
+                {
+                    shoppingList.Remove(selectedItem);
+                    Session["ShoppingList"] = shoppingList;
+                    list_alisveris.DataSource = shoppingList;
+                    list_alisveris.DataBind();
+                }
+            }
+
+            
+        }
+    }
+}
