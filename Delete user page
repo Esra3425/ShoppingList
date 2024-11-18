@@ -1,0 +1,47 @@
+namespace WebApplication1
+{
+    public partial class WebForm4 : System.Web.UI.Page
+    {
+        string connectionString = @"Data Source=[YourDataSource];Initial Catalog=[YourProjectName];Integrated Security=True";
+        protected void Page_Load(object sender, EventArgs e)
+        {
+            lblMessage.Visible = false;
+        }
+
+        protected void Button1_Click(object sender, EventArgs e)
+        {
+            string email = txtEmail.Text.Trim();
+            if (string.IsNullOrEmpty(email))
+            {
+                lblMessage.Text = "Lütfen bir e-posta adresi girin.";
+                lblMessage.Visible = true;
+                return;
+            }
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+
+                string query = "DELETE FROM kayit WHERE kullanici_mail = @Email";
+                SqlCommand command = new SqlCommand(query, connection);
+                command.Parameters.AddWithValue("@Email", email);
+
+                int rowsAffected = command.ExecuteNonQuery();
+
+                if (rowsAffected > 0)
+                {
+                    Session["SilindiMessage"] = "Kayıt başarıyla silindi.";
+                    Response.Redirect("DeleteWarning.aspx");
+                }
+                else
+                {
+                    lblMessage.Text = "Kayıt silinirken bir hata oluştu veya böyle bir kayıt bulunamadı.";
+                    lblMessage.ForeColor = System.Drawing.Color.Red;
+                }
+
+                lblMessage.Visible = true;
+
+            }
+        }
+    }
+}
